@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import java.io.File
 import java.util.Calendar
 import java.util.Date
+import java.util.UUID
 
 class CameraActivity : AppCompatActivity() {
 
@@ -45,7 +46,9 @@ class CameraActivity : AppCompatActivity() {
                     file.delete()
                 }
 
-                override fun onError(exc: ImageCaptureException) {}
+                override fun onError(exc: ImageCaptureException) {
+                    android.util.Log.e("SmartCapture", "Failed to capture image", exc)
+                }
             }
         )
     }
@@ -241,8 +244,15 @@ class LibraryManager {
         val root = File(ctx.filesDir, "SmartCapture")
         val leaf = lib.path.substringAfter("/SmartCapture/").trim('/')
         val targetDir = File(root, leaf)
-        if (!targetDir.exists()) targetDir.mkdirs()
-        val out = File(targetDir, "sc_${System.currentTimeMillis()}.jpg")
-        out.writeBytes(data)
+        if (!targetDir.exists() && !targetDir.mkdirs()) {
+            android.util.Log.e("SmartCapture", "Failed to create directory: ${targetDir.absolutePath}")
+            return
+        }
+        val out = File(targetDir, "sc_${UUID.randomUUID()}.jpg")
+        try {
+            out.writeBytes(data)
+        } catch (e: Exception) {
+            android.util.Log.e("SmartCapture", "Failed to save image", e)
+        }
     }
 }

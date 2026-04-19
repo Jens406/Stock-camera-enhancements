@@ -254,8 +254,10 @@ final class ProfileManager {
 }
 
 final class MetadataWriter {
-    func embedMetadata(imageData: Data, profile _: Profile, context _: RuleContext) -> Data {
+    func embedMetadata(imageData: Data, profile: Profile, context: RuleContext) -> Data {
         // Placeholder for XMP/EXIF embedding based on selected profile.
+        _ = profile.id
+        _ = context.classification
         return imageData
     }
 }
@@ -274,9 +276,18 @@ final class LibraryManager {
         guard let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
         let relativePath = library.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         let targetDir = documents.appendingPathComponent(relativePath, isDirectory: true)
-        try? FileManager.default.createDirectory(at: targetDir, withIntermediateDirectories: true)
-        let filename = "sc_\(Int(Date().timeIntervalSince1970)).jpg"
+        do {
+            try FileManager.default.createDirectory(at: targetDir, withIntermediateDirectories: true)
+        } catch {
+            print("SmartCapture: failed to create directory: \(error)")
+            return
+        }
+        let filename = "sc_\(UUID().uuidString).jpg"
         let fileURL = targetDir.appendingPathComponent(filename)
-        try? imageData.write(to: fileURL, options: .atomic)
+        do {
+            try imageData.write(to: fileURL, options: .atomic)
+        } catch {
+            print("SmartCapture: failed to save image: \(error)")
+        }
     }
 }
