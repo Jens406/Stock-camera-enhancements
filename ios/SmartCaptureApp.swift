@@ -141,7 +141,7 @@ struct Rule {
 final class ImageClassifier {
     func classify(imageData: Data) -> Classification {
         guard imageData.count > 0 else { return .unknown }
-        return .receipt
+        return imageData.count < 200_000 ? .receipt : .hiveInspection
     }
 }
 
@@ -174,11 +174,15 @@ final class RuleEngine {
         let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: context.date)
         let hour = calendar.component(.hour, from: context.date)
+        let minute = calendar.component(.minute, from: context.date)
+        let minuteOfDay = (hour * 60) + minute
         if let matched = rules.first(where: { rule in
+            let fromMinute = rule.fromHour * 60
+            let toMinute = rule.toHour * 60
             rule.classifier == context.classification &&
             rule.weekdays.contains(weekday) &&
-            hour >= rule.fromHour &&
-            hour < rule.toHour
+            minuteOfDay >= fromMinute &&
+            minuteOfDay <= toMinute
         }), let profile = profiles.first(where: { $0.id == matched.applyProfileId }) {
             return profile
         }
@@ -231,6 +235,7 @@ final class ProfileManager {
 
 final class MetadataWriter {
     func embedMetadata(imageData: Data, profile _: Profile, context _: RuleContext) -> Data {
+        // Placeholder for XMP/EXIF embedding based on selected profile.
         return imageData
     }
 }

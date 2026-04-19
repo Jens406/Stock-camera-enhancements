@@ -18,7 +18,7 @@
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="32dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Capture"
+        android:contentDescription="@string/capture_button"
         android:scaleType="centerInside"
         android:src="@android:drawable/ic_menu_camera" />
 

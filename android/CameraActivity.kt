@@ -104,7 +104,7 @@ data class LibraryDefinition(
 class ImageClassifier {
     fun classify(data: ByteArray): Classification {
         if (data.isEmpty()) return Classification.unknown
-        return Classification.receipt
+        return if (data.size < 200_000) Classification.receipt else Classification.hiveInspection
     }
 }
 
@@ -130,12 +130,16 @@ class RuleEngine {
         val calendar = Calendar.getInstance().apply { time = context.date }
         val day = calendar.get(Calendar.DAY_OF_WEEK)
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+        val minuteOfDay = (hour * 60) + minute
 
         val matchedRule = rules.firstOrNull {
+            val fromMinute = it.fromHour * 60
+            val toMinute = it.toHour * 60
             it.classifier == context.classification &&
                 day in it.daysOfWeek &&
-                hour >= it.fromHour &&
-                hour < it.toHour
+                minuteOfDay >= fromMinute &&
+                minuteOfDay <= toMinute
         }
 
         return when {
@@ -193,6 +197,7 @@ class MetadataWriter {
         @Suppress("UNUSED_PARAMETER") profile: Profile,
         @Suppress("UNUSED_PARAMETER") context: RuleContext
     ): ByteArray {
+        // Placeholder for XMP/EXIF embedding based on selected profile.
         return data
     }
 }
