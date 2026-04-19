@@ -146,13 +146,26 @@ final class ImageClassifier {
 }
 
 final class RuleEngine {
+    private static func weekdays(from symbols: [String]) -> Set<Int> {
+        let mapping: [String: Int] = [
+            "Sun": 1,
+            "Mon": 2,
+            "Tue": 3,
+            "Wed": 4,
+            "Thu": 5,
+            "Fri": 6,
+            "Sat": 7
+        ]
+        return Set(symbols.compactMap { mapping[$0] })
+    }
+
     private let rules: [Rule] = [
         Rule(
             id: "rule_receipts_workhours",
             classifier: .receipt,
             fromHour: 8,
             toHour: 18,
-            weekdays: [2, 3, 4, 5, 6],
+            weekdays: RuleEngine.weekdays(from: ["Mon", "Tue", "Wed", "Thu", "Fri"]),
             applyProfileId: "profile_receipts"
         )
     ]
@@ -165,7 +178,7 @@ final class RuleEngine {
             rule.classifier == context.classification &&
             rule.weekdays.contains(weekday) &&
             hour >= rule.fromHour &&
-            hour <= rule.toHour
+            hour < rule.toHour
         }), let profile = profiles.first(where: { $0.id == matched.applyProfileId }) {
             return profile
         }
@@ -217,9 +230,7 @@ final class ProfileManager {
 }
 
 final class MetadataWriter {
-    func embedMetadata(imageData: Data, profile: Profile, context: RuleContext) -> Data {
-        _ = profile
-        _ = context
+    func embedMetadata(imageData: Data, profile _: Profile, context _: RuleContext) -> Data {
         return imageData
     }
 }

@@ -134,7 +134,8 @@ class RuleEngine {
         val matchedRule = rules.firstOrNull {
             it.classifier == context.classification &&
                 day in it.daysOfWeek &&
-                hour in it.fromHour..it.toHour
+                hour >= it.fromHour &&
+                hour < it.toHour
         }
 
         return when {
@@ -145,8 +146,7 @@ class RuleEngine {
 }
 
 class ProfileManager {
-    fun loadProfiles(ctx: Context): List<Profile> {
-        ctx
+    fun loadProfiles(@Suppress("UNUSED_PARAMETER") ctx: Context): List<Profile> {
         val namespace = "https://smartcapture.app/xmp/1.0/"
         return listOf(
             Profile(
@@ -188,9 +188,11 @@ class ProfileManager {
 }
 
 class MetadataWriter {
-    fun embedMetadata(data: ByteArray, profile: Profile, context: RuleContext): ByteArray {
-        profile
-        context
+    fun embedMetadata(
+        data: ByteArray,
+        @Suppress("UNUSED_PARAMETER") profile: Profile,
+        @Suppress("UNUSED_PARAMETER") context: RuleContext
+    ): ByteArray {
         return data
     }
 }
