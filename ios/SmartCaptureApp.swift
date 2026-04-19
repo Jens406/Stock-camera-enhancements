@@ -92,12 +92,12 @@ final class ImageProcessor {
 
     func processCapturedImage(data: Data) {
         let classification = classifier.classify(imageData: data)
-        let context = RuleContext(classification: classification, date: Date(), location: nil)
-        let profile = ruleEngine.selectProfile(context: context,
+        let ruleContext = RuleContext(classification: classification, date: Date(), location: nil)
+        let profile = ruleEngine.selectProfile(context: ruleContext,
                                                profiles: profileManager.loadProfiles())
         let enriched = metadataWriter.embedMetadata(imageData: data,
                                                     profile: profile,
-                                                    context: context)
+                                                    context: ruleContext)
         libraryManager.save(imageData: enriched, profile: profile)
     }
 }
@@ -184,7 +184,7 @@ final class RuleEngine {
             rule.classifier == context.classification &&
             rule.weekdays.contains(weekday) &&
             minuteOfDay >= fromMinute &&
-            minuteOfDay < (toMinute + 1)
+            minuteOfDay <= toMinute
         }), let profile = profiles.first(where: { $0.id == matched.applyProfileId }) {
             return profile
         }

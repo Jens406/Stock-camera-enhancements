@@ -60,9 +60,9 @@ class ImageProcessor {
 
     fun processCapturedImage(data: ByteArray, ctx: Context) {
         val classification = classifier.classify(data)
-        val context = RuleContext(classification, Date(), null)
-        val profile = ruleEngine.selectProfile(context, profileManager.loadProfiles(ctx))
-        val enriched = metadataWriter.embedMetadata(data, profile, context)
+        val ruleContext = RuleContext(classification, Date(), null)
+        val profile = ruleEngine.selectProfile(ruleContext, profileManager.loadProfiles(ctx))
+        val enriched = metadataWriter.embedMetadata(data, profile, ruleContext)
         libraryManager.save(enriched, profile, ctx)
     }
 }
@@ -141,7 +141,7 @@ class RuleEngine {
             it.classifier == context.classification &&
                 day in it.daysOfWeek &&
                 minuteOfDay >= fromMinute &&
-                minuteOfDay < (toMinute + 1)
+                minuteOfDay <= toMinute
         }
 
         return when {
