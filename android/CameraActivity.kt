@@ -102,10 +102,14 @@ data class LibraryDefinition(
 )
 
 class ImageClassifier {
+    private companion object {
+        private const val RECEIPT_SIZE_THRESHOLD = 200_000
+    }
+
     fun classify(data: ByteArray): Classification {
         if (data.isEmpty()) return Classification.unknown
         // Placeholder heuristic until a real ML-based classifier is integrated.
-        return if (data.size < 200_000) Classification.receipt else Classification.hiveInspection
+        return if (data.size < RECEIPT_SIZE_THRESHOLD) Classification.receipt else Classification.hiveInspection
     }
 }
 
@@ -141,7 +145,7 @@ class RuleEngine {
             it.classifier == context.classification &&
                 day in it.daysOfWeek &&
                 minuteOfDay >= fromMinute &&
-                minuteOfDay <= toMinute
+                minuteOfDay < toMinute
         }
 
         return when {
