@@ -139,12 +139,12 @@ struct Rule {
 }
 
 final class ImageClassifier {
-    private let receiptSizeThreshold = 200_000
+    private let classificationSizeThreshold = 200_000
 
     func classify(imageData: Data) -> Classification {
         guard imageData.count > 0 else { return .unknown }
         // Placeholder heuristic until a real ML-based classifier is integrated.
-        return imageData.count < receiptSizeThreshold ? .receipt : .hiveInspection
+        return imageData.count < classificationSizeThreshold ? .receipt : .hiveInspection
     }
 }
 
