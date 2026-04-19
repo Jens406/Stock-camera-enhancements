@@ -1,0 +1,52 @@
+app:
+  id: com.smartcapture.app
+  name: SmartCapture
+  platforms: [ios, android]
+
+storage:
+  basePath: /SmartCapture
+  libraries:
+    - { id: receipts, path: /SmartCapture/Receipts }
+    - { id: documents, path: /SmartCapture/Documents }
+    - { id: hive, path: /SmartCapture/Hive }
+    - { id: fieldops, path: /SmartCapture/FieldOps }
+    - { id: general, path: /SmartCapture/General }
+
+profiles:
+  - id: profile_receipts
+    name: Receipts
+    libraryId: receipts
+    xmpNamespace: https://smartcapture.app/xmp/1.0/
+    xmp:
+      DocumentType: Receipt
+      WorkflowStage: Raw
+      Category: Finance
+      Vendor: Auto
+      Confidence: Auto
+    exif:
+      Artist: User
+      Software: SmartCapture 1.0
+    shortcutIdentifier: smartcapture_receipt_camera
+
+  - id: profile_hive
+    name: Hive Inspection
+    libraryId: hive
+    xmpNamespace: https://smartcapture.app/xmp/1.0/
+    xmp:
+      DocumentType: HiveInspection
+      WorkflowStage: Raw
+      Category: Beekeeping
+    exif:
+      Artist: User
+      Software: SmartCapture 1.0
+    shortcutIdentifier: smartcapture_hive_camera
+
+rules:
+  - id: rule_receipts_workhours
+    name: Work Receipts
+    conditions:
+      classifier: receipt
+      timeRange: { from: "08:00", to: "18:00" }
+      daysOfWeek: [Mon, Tue, Wed, Thu, Fri]
+    action:
+      applyProfileId: profile_receipts
