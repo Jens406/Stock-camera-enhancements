@@ -104,6 +104,7 @@ data class LibraryDefinition(
 class ImageClassifier {
     fun classify(data: ByteArray): Classification {
         if (data.isEmpty()) return Classification.unknown
+        // Placeholder heuristic until a real ML-based classifier is integrated.
         return if (data.size < 200_000) Classification.receipt else Classification.hiveInspection
     }
 }
@@ -127,6 +128,7 @@ class RuleEngine {
     )
 
     fun selectProfile(context: RuleContext, profiles: List<Profile>): Profile {
+        if (profiles.isEmpty()) return ProfileManager.fallbackProfile
         val calendar = Calendar.getInstance().apply { time = context.date }
         val day = calendar.get(Calendar.DAY_OF_WEEK)
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -139,17 +141,36 @@ class RuleEngine {
             it.classifier == context.classification &&
                 day in it.daysOfWeek &&
                 minuteOfDay >= fromMinute &&
-                minuteOfDay <= toMinute
+                minuteOfDay < (toMinute + 1)
         }
 
         return when {
             matchedRule != null -> profiles.firstOrNull { it.id == matchedRule.applyProfileId }
             else -> profiles.firstOrNull { it.id == "profile_hive" }
-        } ?: profiles.first()
+        } ?: profiles.firstOrNull() ?: ProfileManager.fallbackProfile
     }
 }
 
 class ProfileManager {
+    companion object {
+        val fallbackProfile = Profile(
+            id = "profile_general",
+            name = "General",
+            libraryId = "general",
+            xmpNamespace = "https://smartcapture.app/xmp/1.0/",
+            xmp = mapOf(
+                "DocumentType" to "General",
+                "WorkflowStage" to "Raw",
+                "Category" to "General"
+            ),
+            exif = mapOf(
+                "Artist" to "User",
+                "Software" to "SmartCapture 1.0"
+            ),
+            shortcutIdentifier = "smartcapture_general_camera"
+        )
+    }
+
     fun loadProfiles(@Suppress("UNUSED_PARAMETER") ctx: Context): List<Profile> {
         val namespace = "https://smartcapture.app/xmp/1.0/"
         return listOf(

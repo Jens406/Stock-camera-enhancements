@@ -141,6 +141,7 @@ struct Rule {
 final class ImageClassifier {
     func classify(imageData: Data) -> Classification {
         guard imageData.count > 0 else { return .unknown }
+        // Placeholder heuristic until a real ML-based classifier is integrated.
         return imageData.count < 200_000 ? .receipt : .hiveInspection
     }
 }
@@ -171,6 +172,7 @@ final class RuleEngine {
     ]
 
     func selectProfile(context: RuleContext, profiles: [Profile]) -> Profile {
+        guard !profiles.isEmpty else { return ProfileManager.fallbackProfile }
         let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: context.date)
         let hour = calendar.component(.hour, from: context.date)
@@ -182,7 +184,7 @@ final class RuleEngine {
             rule.classifier == context.classification &&
             rule.weekdays.contains(weekday) &&
             minuteOfDay >= fromMinute &&
-            minuteOfDay <= toMinute
+            minuteOfDay < (toMinute + 1)
         }), let profile = profiles.first(where: { $0.id == matched.applyProfileId }) {
             return profile
         }
@@ -192,6 +194,22 @@ final class RuleEngine {
 
 final class ProfileManager {
     private let namespace = "https://smartcapture.app/xmp/1.0/"
+    static let fallbackProfile = Profile(
+        id: "profile_general",
+        name: "General",
+        libraryId: "general",
+        xmpNamespace: "https://smartcapture.app/xmp/1.0/",
+        xmp: [
+            "DocumentType": "General",
+            "WorkflowStage": "Raw",
+            "Category": "General"
+        ],
+        exif: [
+            "Artist": "User",
+            "Software": "SmartCapture 1.0"
+        ],
+        shortcutIdentifier: "smartcapture_general_camera"
+    )
 
     func loadProfiles() -> [Profile] {
         [
@@ -251,7 +269,7 @@ final class LibraryManager {
 
     func save(imageData: Data, profile: Profile) {
         guard let library = libraries.first(where: { $0.id == profile.libraryId }) else { return }
-        let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        guard let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
         let relativePath = library.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         let targetDir = documents.appendingPathComponent(relativePath, isDirectory: true)
         try? FileManager.default.createDirectory(at: targetDir, withIntermediateDirectories: true)
